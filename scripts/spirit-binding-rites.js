@@ -1,4 +1,23 @@
-import Spirit from "scripts/spirits/spirit.js";
+import {
+  Agony, 
+  Desire,
+  Empathy,
+  Envy,
+  Fear,
+  Generosity,
+  Guilt,
+  Hate,
+  Humility,
+  Hunger,
+  Passion,
+  Pride,
+  Serenity,
+  Sloth,
+  Sorrow,
+  Trust,
+  Valor,
+  Wonder,
+} from "./spirits/spirit.js";
 
 /**
  * Spirit Binding Rites Module
@@ -103,7 +122,7 @@ export class SpiritBindingRites {
     return await SpiritBindingRites.UpdateSpiritBox(actor, SpiritBindingRites.INITIAL_BOX);
     }
 
-    static createBindDialog(actor, spirits) {
+    static createBindDialog(actor, spirits_box) {
         let slots_options_text = "";
         for (let spell_level in actor.system.spells) {
           if (spell_level == "pact") continue;
@@ -113,7 +132,7 @@ export class SpiritBindingRites {
         }
       
         let spirits_options_text = "";
-        for (let [spirit_name, level] of Object.entries(spirits)) {
+        for (let [spirit_name, level] of Object.entries(spirits_box)) {
           if (!level) spirits_options_text += `<option value="${spirit_name}">${spirit_name}</option>`;
         }
       
@@ -159,15 +178,15 @@ export class SpiritBindingRites {
                 if (result === "cancel") return;
                 let spell_level = result[0];
                 let spirit_name = result[1];
-                let spirit_func = spirit_funcs.find(value => value.name == spirit_name);
-                SpiritBindingRites.CastSpell(actor, spell_level, spirit_name, binding = true , spirit_func);
+                let spirit_obj = this.spirits.find(value => value.name == spirit_name);
+                SpiritBindingRites.CastSpell(actor, spell_level, spirit_name, binding = true , spirit_obj);
             }
         });
     }
 
-    static createReleaseDialog(actor, spirits) {
+    static createReleaseDialog(actor, spirits_box) {
         let options_text = "";
-        for (let [spirit_name, level] of Object.entries(spirits)) {
+        for (let [spirit_name, level] of Object.entries(spirits_box)) {
           if (level) options_text += `<option value="${spirit_name}">${spirit_name} level ${level}</option>`;
         }
       
@@ -201,9 +220,9 @@ export class SpiritBindingRites {
             submit: result => {
                 if (result === "cancel") return;
                 let spirit_name = result;
-                let spell_level = `spell${spirits[spirit_name]}`;
-                let spirit_func = spirit_funcs.find((value) => value.name == spirit_name);
-                SpiritBindingRites.CastSpell(actor, spell_level, spirit_name, binding = false , spirit_func);
+                let spell_level = `spell${spirits_box[spirit_name]}`;
+                let spirit_obj = this.spirits.find((value) => value.name == spirit_name);
+                SpiritBindingRites.CastSpell(actor, spell_level, spirit_name, binding = false , spirit_obj);
             }
         });
     }
@@ -256,29 +275,40 @@ export class SpiritBindingRites {
                 if(result === "release"){
                     if (SpiritBindingRites.GetSpiritsCount(actor) == 0)
                         return SpiritBindingRites.SendErrorMsg("Your character isn't united with any spirits");
-                    releasing_dialog.render({ force: true });
+                    releaseDialog.render({ force: true });
                 } else {
                     if (SpiritBindingRites.GetSpiritsCount(actor) > max_bonds)
                         return SpiritBindingRites.SendErrorMsg(`Current spirit count (${SpiritBindingRites.GetSpiritsCount(actor)}) is higher than entered maximum bonds (${max_bonds}). Please select a valid number!`)
                     if (!SpiritBindingRites.hasAnyAvailableSlot(actor))
                         return SpiritBindingRites.SendErrorMsg("Your character doesn't have any spell slots left");
-                    binding_dialog.render({ force: true });
+                    bindDialog.render({ force: true });
                 }
             }
         });
     }
 
-    static spirit_funcs = {
-        Agony: async ({ actor, is_binding_mode, spell_slot }) => {
-          // Implementation for Agony spirit
-        },
-        Desire: async ({ actor, is_binding_mode, spell_slot }) => {
-          // Implementation for Desire spirit
-        },
-        // Add implementations for other spirits...
-    };
-      
-    static async CastSpell(actor, spell_level, spirit_name, binding, spirit_func) {
+    static spirits = [
+      new Agony(),
+      new Desire(),
+      new Empathy(),
+      new Envy(),
+      new Fear(),
+      new Generosity(),
+      new Guilt(),
+      new Hate(),
+      new Humility(),
+      new Hunger(),
+      new Passion(),
+      new Pride(),
+      new Serenity(),
+      new Sloth(),
+      new Sorrow(),
+      new Trust(),
+      new Valor(),
+      new Wonder(),
+    ];
+    
+    static async CastSpell(actor, spell_level, spirit_name, binding, spirit_obj) {
         const override = actor.system.spells[spell_level].override;
         const max = actor.system.spells[spell_level].max;
         const value = actor.system.spells[spell_level].value;
@@ -297,7 +327,7 @@ export class SpiritBindingRites {
           await SpiritBindingRites.UpdateSpirit(actor, spirit_name, actor.system.spells[spell_level].level, binding);
         }
       
-        await spirit_func({ actor, is_binding_mode: binding, spell_slot: actor.system.spells[spell_level].level });
+        await spirit_obj.execute( actor, binding, actor.system.spells[spell_level].level );
         await SpiritBindingRites.updateSpiritBoxJournal(actor, SpiritBindingRites.JOURNAL_ENTRY_ID);
     }
 
