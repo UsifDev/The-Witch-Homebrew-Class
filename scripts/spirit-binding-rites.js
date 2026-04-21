@@ -304,13 +304,19 @@ export default class SpiritBindingRites {
       
         content += `</table>`;
       
-        const journalEntry = game.journal.get(journalEntryId);
+        const journalEntry = game.journal.getName(journalEntryId);
         if (!journalEntry) {
-          console.error(`Journal entry with ID ${journalEntryId} not found.`);
+          console.error(`Journal entry with name ${journalEntryId} not found.`);
           return;
         }
       
-        await journalEntry.update({ content: content });
+        const journalPage = journalEntry.pages.getName(journalEntryId);
+        if (!journalPage) {
+          console.error(`Journal page with name ${journalEntryId} not found.`);
+          return;
+        }
+      
+        await journalPage.update({ text: content });
         console.log("Spirit Box Journal updated successfully.");
     }
 }
