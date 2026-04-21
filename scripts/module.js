@@ -1,4 +1,4 @@
-import SpiritBindingRites from './spirit-binding-rites.js';
+import { SpiritBindingRites } from './spirit-binding-rites.js';
 
 Hooks.once('init', async function() {
     SpiritBindingRites.init();

@@ -1,53 +1,17 @@
-import {
-  Agony, 
-  Desire,
-  Empathy,
-  Envy,
-  Fear,
-  Generosity,
-  Guilt,
-  Hate,
-  Humility,
-  Hunger,
-  Passion,
-  Pride,
-  Serenity,
-  Sloth,
-  Sorrow,
-  Trust,
-  Valor,
-  Wonder,
-} from "./spirits/spirit.js";
+import { spirits } from "./spirits/spirit.js";
 
 /**
  * Spirit Binding Rites Module
  * A module for managing custom spirit binding mechanics.
  */
 
-export class SpiritBindingRites {
+export default class SpiritBindingRites {
     static JOURNAL_ENTRY_ID = "Roisin's Spirits";
     static SCOPE = "world";
     static FLAG_NAME = "spirit box";
-    static INITIAL_BOX = {
-      Agony: false,
-      Desire: false,
-      Empathy: false,
-      Envy: false,
-      Fear: false,
-      Generosity: false,
-      Guilt: false,
-      Hate: false,
-      Humility: false,
-      Hunger: false,
-      Passion: false,
-      Pride: false,
-      Serenity: false,
-      Sloth: false,
-      Sorrow: false,
-      Trust: false,
-      Valor: false,
-      Wonder: false,
-    };
+    static get INITIAL_BOX() {
+      return Object.fromEntries(SpiritBindingRites.spirits.map((spirit) => [spirit.name, false]));
+    }
   
     /**
      * Initialize the module.
@@ -105,21 +69,35 @@ export class SpiritBindingRites {
     }
       
     static async UpdateSpiritBox(actor, flag_object) {
-    return await actor.setFlag(SpiritBindingRites.SCOPE, SpiritBindingRites.FLAG_NAME, flag_object);
+      return await actor.setFlag(SpiritBindingRites.SCOPE, SpiritBindingRites.FLAG_NAME, flag_object);
     }
-      
+
+    static GetSpiritsCount(actor) {
+      const box = SpiritBindingRites.GetSpiritBox(actor);
+      if (!box) return 0;
+      return Object.values(box).reduce((count, value) => count + (value !== false ? 1 : 0), 0);
+    }
+
+    static hasAnyAvailableSlot(actor) {
+      for (const spell_level in actor.system.spells) {
+        if (spell_level === "pact") continue;
+        if (actor.system.spells[spell_level].value > 0) return true;
+      }
+      return false;
+    }
+
     static async UpdateSpirit(actor, spirit_name, spirit_level, is_binding) {
-    let box = SpiritBindingRites.GetSpiritBox(actor);
-    if (is_binding) {
+      let box = SpiritBindingRites.GetSpiritBox(actor);
+      if (is_binding) {
         box[spirit_name] = spirit_level;
-    } else {
+      } else {
         box[spirit_name] = false;
+      }
+      await SpiritBindingRites.UpdateSpiritBox(actor, box);
     }
-    await SpiritBindingRites.UpdateSpiritBox(actor, box);
-    }
-      
+
     static async FlagInitializer(actor) {
-    return await SpiritBindingRites.UpdateSpiritBox(actor, SpiritBindingRites.INITIAL_BOX);
+      return await SpiritBindingRites.UpdateSpiritBox(actor, SpiritBindingRites.INITIAL_BOX);
     }
 
     static createBindDialog(actor, spirits_box) {
@@ -255,12 +233,13 @@ export class SpiritBindingRites {
                     action: "bind",
                     icon: "fas fa-check",
                     label: "Call upon the spirit!",
-                    callback: (event,button,dialog) => button.form.elements.bonds.valueAsNumber
+                    callback: (event, button, dialog) => button.form.elements.bonds.valueAsNumber
                 },
                 {
                     action: "release",
                     icon: "fas fa-check",
                     label: "Release the spirit!",
+                    callback: () => "release"
                 },
                 {
                     action: "cancel",
@@ -287,26 +266,7 @@ export class SpiritBindingRites {
         });
     }
 
-    static spirits = [
-      new Agony(),
-      new Desire(),
-      new Empathy(),
-      new Envy(),
-      new Fear(),
-      new Generosity(),
-      new Guilt(),
-      new Hate(),
-      new Humility(),
-      new Hunger(),
-      new Passion(),
-      new Pride(),
-      new Serenity(),
-      new Sloth(),
-      new Sorrow(),
-      new Trust(),
-      new Valor(),
-      new Wonder(),
-    ];
+    static spirits = spirits;
     
     static async CastSpell(actor, spell_level, spirit_name, binding, spirit_obj) {
         const override = actor.system.spells[spell_level].override;

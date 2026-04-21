@@ -2,9 +2,8 @@
   "id": "module",
   "title": "The Witch Homebrew 5e",
   "description": "A module for managing custom spirit binding mechanics.",
-  "version": "1.0.0",
+  "version": "#{VERSION}#",
   "library": "false",
-  "manifestPlusVersion": "1.2.0",
   "compatibility": {
     "minimum": 12,
     "verified": 12
@@ -20,11 +19,11 @@
     "requires": []
   },
   "esmodules": [
-    "scripts/module.js"
+    "scripts/module.js",
+    "scripts/lib/lib.js",
+    "scripts/spirit-binding-rites.js"
   ],
-  "scripts": [
-    "scripts/lib/lib.js"
-  ],
+  "scripts": [],
   "styles": [
     "styles/module.css"
   ],
@@ -35,15 +34,8 @@
       "path": "languages/en.json"
     }
   ],
-  "url": "https://github.com/UsifDev/The-Witch-Homebrew-Class",
-  "manifest": "https://raw.githubusercontent.com/UsifDev/The-Witch-Homebrew-Class/main/module.json",
-  "download": "https://github.com/UsifDev/The-Witch-Homebrew-Class/archive/main.zip",
-  "license": "LICENSE",
-  "readme": "README.md",
-  "media": [
-    {
-      "type": "icon",
-      "url": "https://avatars2.githubusercontent.com/u/71292812?s=400&u=ccdb4eeb7abf551ca8f314e5a9bfd0479a4d3d41&v=4"
-    }
-  ]
+	"url": "#{URL}#",
+	"manifest": "#{MANIFEST}#",
+	"download": "#{DOWNLOAD}#",
+	"changelog": "#{CHANGELOG}#"
 }
